@@ -3,6 +3,7 @@ const CORS_PROXY = location.hostname === 'localhost' || location.hostname === '1
 
 // For production, use the Worker URL directly (no relative URLs)
 // This eliminates any path-based routing issues on Pages
+// SRE FIX: Explicit Worker URL to eliminate CORS - deployed 2026-05-03 16:10
 
 async function api(path, options = {}) {
   const headers = new Headers({ 'Content-Type': 'application/json' })
