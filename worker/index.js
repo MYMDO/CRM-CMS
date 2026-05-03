@@ -6,7 +6,7 @@ import { checkoutRouter } from './routes/checkout.js'
 
 const app = new Hono()
 
-// CORS middleware - allow requests from Pages domain
+// CORS middleware - allow requests from Pages domain and local development
 app.use('*', cors({
   origin: (origin) => {
     const allowed = [
@@ -26,12 +26,15 @@ app.use('*', cors({
   maxAge: 86400
 }))
 
+// Health check endpoint
 app.get('/api/health', (c) => c.json({ status: 'ok', timestamp: Date.now() }))
 
+// Config endpoint (public)
 app.get('/api/config', (c) => c.json({
   stripePublishableKey: c.env.STRIPE_PUBLISHABLE_KEY || ''
 }))
 
+// Mount API routes
 app.route('/api', productsRouter)
 app.route('/api', ordersRouter)
 app.route('/api', checkoutRouter)

@@ -2,49 +2,40 @@ import { Hono } from 'hono'
 
 const productsRouter = new Hono()
 
+// Helper: Check admin authorization
 function isAdmin(c) {
-  const auth = c.req.header('Authorization')
-  return auth === `Bearer ${c.env.ADMIN_API_KEY}`
+  return c.req.header('Authorization') === `Bearer ${c.env.ADMIN_API_KEY}`
 }
 
+// Helper: Generate unique ID
 function generateId() {
-  return Date.now().toString(36) + Math.random().toString(36).substr(2, 9)
+  return Date.now().toString(36) + Math.random().toString(36).substring(2, 11)
 }
 
-async function getCounter(c, name) {
-  const val = await c.env.KV.get(`counter:${name}`)
-  return val ? parseInt(val) : 0
-}
-
-async function incrementCounter(c, name) {
-  const current = await getCounter(c, name)
-  const next = current + 1
-  await c.env.KV.put(`counter:${name}`, next.toString())
-  return next
-}
-
+// GET /api/products - List products (public)
 productsRouter.get('/products', async (c) => {
   const { category, status } = c.req.query()
   const list = await c.env.KV.list({ prefix: 'product:' })
   const products = []
   for (const key of list.keys) {
     const data = await c.env.KV.get(key.name)
-    if (data) {
-      const product = JSON.parse(data)
-      if (category && product.category !== category) continue
-      if (status && product.status !== status) continue
-      products.push(product)
-    }
+    if (!data) continue
+    const product = JSON.parse(data)
+    if (category && product.category !== category) continue
+    if (status && product.status !== status) continue
+    products.push(product)
   }
   return c.json(products)
 })
 
+// GET /api/products/:id - Get single product (public)
 productsRouter.get('/products/:id', async (c) => {
   const data = await c.env.KV.get(`product:${c.req.param('id')}`)
   if (!data) return c.json({ error: 'Product not found' }, 404)
   return c.json(JSON.parse(data))
 })
 
+// POST /api/products - Create product (admin only)
 productsRouter.post('/products', async (c) => {
   if (!isAdmin(c)) return c.json({ error: 'Unauthorized' }, 401)
   const body = await c.req.json()
@@ -52,11 +43,11 @@ productsRouter.post('/products', async (c) => {
   const product = {
     id,
     sku: body.sku || `SKU-${id}`,
-    title: body.title,
+    title: body.title || 'Untitled',
     description: body.description || '',
     price: parseFloat(body.price) || 0,
     currency: body.currency || 'USD',
-    images: body.images || [],
+    images: Array.isArray(body.images) ? body.images : [],
     category: body.category || '',
     status: body.status || 'active',
     inventory: parseInt(body.inventory) || 0,
@@ -65,10 +56,10 @@ productsRouter.post('/products', async (c) => {
     updatedAt: new Date().toISOString()
   }
   await c.env.KV.put(`product:${id}`, JSON.stringify(product))
-  await incrementCounter(c, 'products')
   return c.json(product, 201)
 })
 
+// PATCH /api/products/:id - Update product (admin only)
 productsRouter.patch('/products/:id', async (c) => {
   if (!isAdmin(c)) return c.json({ error: 'Unauthorized' }, 401)
   const data = await c.env.KV.get(`product:${c.req.param('id')}`)
@@ -76,15 +67,22 @@ productsRouter.patch('/products/:id', async (c) => {
   const product = JSON.parse(data)
   const body = await c.req.json()
   Object.assign(product, {
-    ...body,
+    title: body.title || product.title,
+    description: body.description ?? product.description,
     price: body.price !== undefined ? parseFloat(body.price) : product.price,
+    currency: body.currency || product.currency,
+    images: Array.isArray(body.images) ? body.images : product.images,
+    category: body.category ?? product.category,
+    status: body.status || product.status,
     inventory: body.inventory !== undefined ? parseInt(body.inventory) : product.inventory,
+    weight: body.weight !== undefined ? parseFloat(body.weight) : product.weight,
     updatedAt: new Date().toISOString()
   })
   await c.env.KV.put(`product:${c.req.param('id')}`, JSON.stringify(product))
   return c.json(product)
 })
 
+// DELETE /api/products/:id - Delete product (admin only)
 productsRouter.delete('/products/:id', async (c) => {
   if (!isAdmin(c)) return c.json({ error: 'Unauthorized' }, 401)
   await c.env.KV.delete(`product:${c.req.param('id')}`)
