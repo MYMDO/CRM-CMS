@@ -2,10 +2,20 @@ const API_BASE = location.hostname === 'localhost' || location.hostname === '127
 const ADMIN_KEY = 'crm-cms-admin-secret-key-change-me'
 
 async function api(path, options = {}) {
-  const res = await fetch(`${API_BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json', ...options.headers },
-    ...options
-  })
+  const headers = new Headers({ 'Content-Type': 'application/json' })
+  if (options.headers) {
+    for (const [key, value] of Object.entries(options.headers)) {
+      headers.set(key, value)
+    }
+  }
+  const fetchOptions = { ...options, headers }
+  delete fetchOptions.headers
+  Object.assign(fetchOptions, { headers })
+  const res = await fetch(`${API_BASE}${path}`, fetchOptions)
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(text || `HTTP ${res.status}`)
+  }
   return res.json()
 }
 
