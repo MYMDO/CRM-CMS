@@ -3,13 +3,9 @@ main = "index.js"
 compatibility_date = "2026-05-03"
 
 kv_namespaces = [
-  { binding = "KV", id = "" }
+  { binding = "KV", id = "080dd2790ce948f8bea2a77c48f13fa6" }
 ]
 
 [vars]
 STRIPE_PUBLISHABLE_KEY = ""
 ADMIN_API_KEY = "crm-cms-admin-secret-key-change-me"
-
-[secrets]
-STRIPE_SECRET_KEY = ""
-STRIPE_WEBHOOK_SECRET = ""
