@@ -1,6 +1,7 @@
 let products = []
 
 document.addEventListener('DOMContentLoaded', () => {
+  console.log('DOM loaded, ProductsAPI available:', typeof window.ProductsAPI)
   loadProducts()
   setupEventListeners()
 })
