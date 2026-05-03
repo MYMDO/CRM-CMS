@@ -11,12 +11,17 @@ async function api(path, options = {}) {
   const fetchOptions = { ...options, headers }
   delete fetchOptions.headers
   Object.assign(fetchOptions, { headers })
-  const res = await fetch(`${API_BASE}${path}`, fetchOptions)
-  if (!res.ok) {
-    const text = await res.text()
-    throw new Error(text || `HTTP ${res.status}`)
+  try {
+    const res = await fetch(`${API_BASE}${path}`, fetchOptions)
+    if (!res.ok) {
+      const text = await res.text()
+      throw new Error(`HTTP ${res.status}: ${text}`)
+    }
+    return res.json()
+  } catch (err) {
+    console.error('API Error:', err, 'URL:', `${API_BASE}${path}`, 'Options:', fetchOptions)
+    throw err
   }
-  return res.json()
 }
 
 // Stripe removed - using direct checkout
