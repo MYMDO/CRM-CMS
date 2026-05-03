@@ -7,18 +7,11 @@ const app = new Hono()
 
 app.all('*', async (c, next) => {
   const origin = c.req.header('Origin') || ''
-  const allowedOrigins = [
-    'https://crm-cms-store.pages.dev',
-    'http://localhost:5173',
-    'http://localhost:8787'
-  ]
-  const isAllowedOrigin = allowedOrigins.includes(origin) || origin.endsWith('.pages.dev') || origin.includes('localhost')
-  if (isAllowedOrigin) {
-    c.header('Access-Control-Allow-Origin', origin)
-    c.header('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS')
-    c.header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-    c.header('Access-Control-Max-Age', '86400')
-  }
+  c.header('Access-Control-Allow-Origin', origin || '*')
+  c.header('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS')
+  c.header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+  c.header('Access-Control-Allow-Credentials', 'true')
+  c.header('Access-Control-Max-Age', '86400')
   if (c.req.method === 'OPTIONS') {
     return new Response(null, { status: 204 })
   }
