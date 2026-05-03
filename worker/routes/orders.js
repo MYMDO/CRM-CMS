@@ -33,10 +33,12 @@ ordersRouter.get('/orders/:id', async (c) => {
   if (!data) return c.json({ error: 'Order not found' }, 404)
   const order = JSON.parse(data)
   const auth = c.req.header('Authorization')
-  if (auth !== `Bearer ${c.env.ADMIN_API_KEY}`) {
-    if (!c.req.query('token') || c.req.query('token') !== order.viewToken) {
-      return c.json({ error: 'Unauthorized' }, 401)
-    }
+  if (auth === `Bearer ${c.env.ADMIN_API_KEY}`) {
+    return c.json(order)
+  }
+  const token = c.req.query('token')
+  if (!token || token !== order.viewToken) {
+    return c.json({ error: 'Unauthorized' }, 401)
   }
   return c.json(order)
 })
