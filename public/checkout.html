@@ -65,11 +65,14 @@
 
     document.getElementById('checkout-btn').addEventListener('click', async () => {
       const email = document.getElementById('email').value
+      const name = document.getElementById('name').value
       if (!email) { showError('Please enter your email'); return }
       const items = checkoutItems.map(i => ({ productId: i.productId, quantity: i.quantity }))
       try {
-        const res = await CheckoutAPI.create({ items, customerEmail: email, shippingAddress: {} })
-        if (res.url) { window.location.href = res.url } else { showError('Checkout failed') }
+        const res = await CheckoutAPI.create({ items, customerEmail: email, customerName: name, shippingAddress: {} })
+        if (res.orderId) {
+          window.location.href = `/order.html?order_id=${res.orderId}&token=${res.token}`
+        } else { showError('Checkout failed') }
       } catch (e) { showError(e.message) }
     })
 

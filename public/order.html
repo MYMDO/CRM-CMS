@@ -21,19 +21,20 @@
       const token = params.get('token')
       if (!orderId) { document.getElementById('order-detail').innerHTML = '<p>Order not found.</p>'; return }
       const order = await OrdersAPI.get(orderId, token)
-      const statusBadge = order.status === 'paid' ? 'badge-success' : order.status === 'pending' ? 'badge-warning' : 'badge-danger'
+      const statusBadge = order.status === 'paid' || order.status === 'processing' || order.status === 'shipped' || order.status === 'delivered' ? 'badge-success' : order.status === 'pending' ? 'badge-warning' : 'badge-danger'
       document.getElementById('order-detail').innerHTML = `
         <div class="card" style="text-align:center;padding:2rem">
-          <h2>Thank You!</h2>
-          <p style="margin:1rem 0">Your order has been placed.</p>
+          <h2>Thank You${order.customerName ? ', ' + order.customerName : ''}!</h2>
+          <p style="margin:1rem 0">Your order has been placed successfully.</p>
           <div class="badge ${statusBadge}" style="font-size:1rem;padding:0.5rem 1rem">${order.status.toUpperCase()}</div>
         </div>
         <div class="card" style="margin-top:1rem">
-          <h3>Order #${order.id}</h3>
+          <h3>Order #${order.id.substr(-6)}</h3>
           <p style="font-size:0.85rem;color:var(--text-secondary)">${new Date(order.createdAt).toLocaleString()}</p>
+          ${order.customerEmail ? `<p style="font-size:0.85rem;color:var(--text-secondary)">Email: ${order.customerEmail}</p>` : ''}
           <hr style="margin:1rem 0">
           ${(order.items || []).map(i => `<div style="display:flex;justify-content:space-between;margin:0.5rem 0">
-            <span>Product x${i.quantity}</span><span>$${((i.variantPrice || 0) * i.quantity).toFixed(2)}</span>
+            <span>${i.title || 'Product'} x${i.quantity}</span><span>$${((i.price || 0) * i.quantity).toFixed(2)}</span>
           </div>`).join('')}
           <hr style="margin:1rem 0">
           <div style="display:flex;justify-content:space-between;font-weight:600"><span>Total:</span><span>$${order.total.toFixed(2)}</span></div>

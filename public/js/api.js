@@ -9,14 +9,8 @@ async function api(path, options = {}) {
   return res.json()
 }
 
-let stripeInstance = null
-async function getStripe() {
-  if (stripeInstance) return stripeInstance
-  const config = await api('/api/config')
-  stripeInstance = Stripe(config.stripePublishableKey || '')
-  return stripeInstance
-}
-const stripePromise = getStripe()
+// Stripe removed - using direct checkout
+const stripePromise = Promise.resolve(null)
 
 const ProductsAPI = {
   list: (params = {}) => {
