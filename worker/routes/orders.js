@@ -29,7 +29,7 @@ ordersRouter.get('/orders', async (c) => {
 })
 
 ordersRouter.get('/orders/:id', async (c) => {
-  const data = await c.env.KV.get(`order:${c.param('id')}`)
+  const data = await c.env.KV.get(`order:${c.req.param('id')}`)
   if (!data) return c.json({ error: 'Order not found' }, 404)
   const order = JSON.parse(data)
   const auth = c.req.header('Authorization')
@@ -45,7 +45,7 @@ ordersRouter.get('/orders/:id', async (c) => {
 
 ordersRouter.patch('/orders/:id', async (c) => {
   if (!isAdmin(c)) return c.json({ error: 'Unauthorized' }, 401)
-  const data = await c.env.KV.get(`order:${c.param('id')}`)
+  const data = await c.env.KV.get(`order:${c.req.param('id')}`)
   if (!data) return c.json({ error: 'Order not found' }, 404)
   const order = JSON.parse(data)
   const body = await c.req.json()
@@ -53,7 +53,7 @@ ordersRouter.patch('/orders/:id', async (c) => {
     ...body,
     updatedAt: new Date().toISOString()
   })
-  await c.env.KV.put(`order:${c.param('id')}`, JSON.stringify(order))
+  await c.env.KV.put(`order:${c.req.param('id')}`, JSON.stringify(order))
   return c.json(order)
 })
 

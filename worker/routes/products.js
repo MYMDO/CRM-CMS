@@ -40,7 +40,7 @@ productsRouter.get('/products', async (c) => {
 })
 
 productsRouter.get('/products/:id', async (c) => {
-  const data = await c.env.KV.get(`product:${c.param('id')}`)
+  const data = await c.env.KV.get(`product:${c.req.param('id')}`)
   if (!data) return c.json({ error: 'Product not found' }, 404)
   return c.json(JSON.parse(data))
 })
@@ -71,7 +71,7 @@ productsRouter.post('/products', async (c) => {
 
 productsRouter.patch('/products/:id', async (c) => {
   if (!isAdmin(c)) return c.json({ error: 'Unauthorized' }, 401)
-  const data = await c.env.KV.get(`product:${c.param('id')}`)
+  const data = await c.env.KV.get(`product:${c.req.param('id')}`)
   if (!data) return c.json({ error: 'Product not found' }, 404)
   const product = JSON.parse(data)
   const body = await c.req.json()
@@ -81,13 +81,13 @@ productsRouter.patch('/products/:id', async (c) => {
     inventory: body.inventory !== undefined ? parseInt(body.inventory) : product.inventory,
     updatedAt: new Date().toISOString()
   })
-  await c.env.KV.put(`product:${c.param('id')}`, JSON.stringify(product))
+  await c.env.KV.put(`product:${c.req.param('id')}`, JSON.stringify(product))
   return c.json(product)
 })
 
 productsRouter.delete('/products/:id', async (c) => {
   if (!isAdmin(c)) return c.json({ error: 'Unauthorized' }, 401)
-  await c.env.KV.delete(`product:${c.param('id')}`)
+  await c.env.KV.delete(`product:${c.req.param('id')}`)
   return c.json({ success: true })
 })
 
