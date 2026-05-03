@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cart | Online Store</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1><a href="/">Online Store</a></h1>
+      <nav>
+        <a href="/cart.html">Cart <span id="cart-count" class="cart-count" style="display:none">0</span></a>
+        <a href="/admin/">Admin</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <h2 style="margin-bottom:1.5rem">Shopping Cart</h2>
+    <div id="cart-items"></div>
+    <div id="cart-summary" style="display:none;margin-top:2rem">
+      <div class="card" style="max-width:400px;margin-left:auto">
+        <h3>Order Summary</h3>
+        <div style="display:flex;justify-content:space-between;margin:1rem 0">
+          <span>Total Items:</span><span id="total-items">0</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin:1rem 0;font-weight:600;font-size:1.1rem">
+          <span>Total:</span><span id="total-price">$0.00</span>
+        </div>
+        <button class="btn btn-primary" style="width:100%" onclick="proceedCheckout()">Proceed to Checkout</button>
+      </div>
+    </div>
+    <div id="empty-cart" style="display:none;text-align:center;padding:3rem">
+      <p style="font-size:1.2rem;color:var(--text-secondary)">Your cart is empty</p>
+      <a href="/" class="btn btn-primary" style="margin-top:1rem">Continue Shopping</a>
+    </div>
+  </main>
+  <footer><div class="container">&copy; 2026 Online Store</div></footer>
+  <script src="/js/cart.js"></script>
+  <script src="/js/api.js"></script>
+  <script>
+    let cartProducts = []
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const cart = getCart()
+      if (!cart.length) { document.getElementById('empty-cart').style.display = 'block'; return }
+      const items = await Promise.all(cart.map(i => ProductsAPI.get(i.productId).then(p => ({ ...i, product: p }))))
+      cartProducts = items.filter(i => i.product)
+      renderCart(cartProducts)
+    })
+
+    function renderCart(items) {
+      if (!items.length) { document.getElementById('empty-cart').style.display = 'block'; return }
+      document.getElementById('cart-summary').style.display = 'block'
+      let totalItems = 0, totalPrice = 0
+      document.getElementById('cart-items').innerHTML = items.map(item => {
+        const price = item.variantPrice || item.product.price
+        totalItems += item.quantity
+        totalPrice += price * item.quantity
+        return `
+          <div class="line-item">
+            <img src="${item.product.images?.[0] || 'https://via.placeholder.com/80x80?text=No+Image'}" alt="${item.product.title}">
+            <div style="flex:1">
+              <h4>${item.product.title}</h4>
+              <p class="price">${formatPrice(price, item.product.currency)}</p>
+              <div class="qty-controls">
+                <button class="btn btn-secondary btn-sm" onclick="changeQty('${item.productId}', ${item.variantPrice}, ${item.quantity - 1})">-</button>
+                <span>${item.quantity}</span>
+                <button class="btn btn-secondary btn-sm" onclick="changeQty('${item.productId}', ${item.variantPrice}, ${item.quantity + 1})">+</button>
+                <button class="btn btn-danger btn-sm" style="margin-left:auto" onclick="removeItem('${item.productId}', ${item.variantPrice})">Remove</button>
+              </div>
+            </div>
+          </div>`
+      }).join('')
+      document.getElementById('total-items').textContent = totalItems
+      document.getElementById('total-price').textContent = formatPrice(totalPrice)
+    }
+
+    function changeQty(id, variantPrice, qty) {
+      if (qty < 1) { removeItem(id, variantPrice); return }
+      updateQuantity(id, variantPrice, qty)
+      location.reload()
+    }
+
+    function removeItem(id, variantPrice) {
+      removeFromCart(id, variantPrice)
+      location.reload()
+    }
+
+    function proceedCheckout() {
+      const items = getCart()
+      if (!items.length) return
+      sessionStorage.setItem('checkout-items', JSON.stringify(items))
+      location.href = '/checkout.html'
+    }
+  </script>
+</body>
+</html>

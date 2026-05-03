@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Confirmation | Online Store</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <header>
+    <div class="container"><h1><a href="/">Online Store</a></h1></div>
+  </header>
+  <main class="container" style="max-width:600px">
+    <div id="order-detail"></div>
+  </main>
+  <script src="/js/api.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const params = new URLSearchParams(location.search)
+      const orderId = params.get('order_id')
+      const token = params.get('token')
+      if (!orderId) { document.getElementById('order-detail').innerHTML = '<p>Order not found.</p>'; return }
+      const order = await OrdersAPI.get(orderId, token)
+      const statusBadge = order.status === 'paid' ? 'badge-success' : order.status === 'pending' ? 'badge-warning' : 'badge-danger'
+      document.getElementById('order-detail').innerHTML = `
+        <div class="card" style="text-align:center;padding:2rem">
+          <h2>Thank You!</h2>
+          <p style="margin:1rem 0">Your order has been placed.</p>
+          <div class="badge ${statusBadge}" style="font-size:1rem;padding:0.5rem 1rem">${order.status.toUpperCase()}</div>
+        </div>
+        <div class="card" style="margin-top:1rem">
+          <h3>Order #${order.id}</h3>
+          <p style="font-size:0.85rem;color:var(--text-secondary)">${new Date(order.createdAt).toLocaleString()}</p>
+          <hr style="margin:1rem 0">
+          ${(order.items || []).map(i => `<div style="display:flex;justify-content:space-between;margin:0.5rem 0">
+            <span>Product x${i.quantity}</span><span>$${((i.variantPrice || 0) * i.quantity).toFixed(2)}</span>
+          </div>`).join('')}
+          <hr style="margin:1rem 0">
+          <div style="display:flex;justify-content:space-between;font-weight:600"><span>Total:</span><span>$${order.total.toFixed(2)}</span></div>
+        </div>
+        <a href="/" class="btn btn-primary" style="display:block;margin-top:1.5rem;text-align:center">Continue Shopping</a>`
+      sessionStorage.removeItem('checkout-items')
+      localStorage.setItem('cart', '[]')
+    })
+  </script>
+</body>
+</html>

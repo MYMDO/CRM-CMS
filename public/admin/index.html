@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard | Online Store</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1><a href="/admin/">Admin Panel</a></h1>
+      <nav>
+        <a href="/">View Store</a>
+        <a href="/admin/products.html">Products</a>
+        <a href="/admin/orders.html">Orders</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <h2 style="margin-bottom:1.5rem">Dashboard</h2>
+    <div id="stats" class="stats-grid"></div>
+    <div class="grid grid-2">
+      <div class="card">
+        <h3>Quick Actions</h3>
+        <div style="display:flex;flex-direction:column;gap:0.5rem;margin-top:1rem">
+          <a href="/admin/products.html" class="btn btn-secondary">Manage Products</a>
+          <a href="/admin/orders.html" class="btn btn-secondary">View Orders</a>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Recent Orders</h3>
+        <div id="recent-orders" style="margin-top:1rem"></div>
+      </div>
+    </div>
+  </main>
+  <script src="/js/api.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const [stats, orders] = await Promise.all([OrdersAPI.analytics(), OrdersAPI.list()])
+      document.getElementById('stats').innerHTML = `
+        <div class="card stat-card"><h3>$${stats.totalRevenue}</h3><p>Total Revenue</p></div>
+        <div class="card stat-card"><h3>${stats.orderCount}</h3><p>Total Orders</p></div>
+        <div class="card stat-card"><h3>${stats.productCount}</h3><p>Products</p></div>`
+      const recent = orders.slice(0, 5)
+      document.getElementById('recent-orders').innerHTML = recent.length ? recent.map(o => `
+        <div style="display:flex;justify-content:space-between;padding:0.5rem 0;border-bottom:1px solid var(--border)">
+          <span>#${o.id.substr(-6)} - ${o.customerEmail || 'Guest'}</span>
+          <span class="badge badge-${o.status === 'paid' ? 'success' : o.status === 'pending' ? 'warning' : 'danger'}">${o.status}</span>
+        </div>`).join('') : '<p style="color:var(--text-secondary)">No orders yet.</p>'
+    })
+  </script>
+</body>
+</html>

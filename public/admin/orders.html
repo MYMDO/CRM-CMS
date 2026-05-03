@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orders | Admin</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1><a href="/admin/">Admin Panel</a></h1>
+      <nav>
+        <a href="/">View Store</a>
+        <a href="/admin/products.html">Products</a>
+        <a href="/admin/orders.html">Orders</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+      <h2>Orders</h2>
+      <select id="status-filter" style="width:auto;padding:0.4rem" onchange="filterOrders()">
+        <option value="">All Statuses</option>
+        <option value="pending">Pending</option>
+        <option value="paid">Paid</option>
+        <option value="shipped">Shipped</option>
+        <option value="delivered">Delivered</option>
+        <option value="canceled">Canceled</option>
+      </select>
+    </div>
+    <div id="orders"></div>
+  </main>
+  <script src="/js/api.js"></script>
+  <script>
+    let allOrders = []
+    document.addEventListener('DOMContentLoaded', loadOrders)
+
+    async function loadOrders() {
+      allOrders = await OrdersAPI.list()
+      filterOrders()
+    }
+
+    function filterOrders() {
+      const status = document.getElementById('status-filter').value
+      const filtered = status ? allOrders.filter(o => o.status === status) : allOrders
+      renderOrders(filtered)
+    }
+
+    function renderOrders(orders) {
+      document.getElementById('orders').innerHTML = orders.length ? `
+        <table class="table">
+          <thead><tr><th>Order ID</th><th>Customer</th><th>Total</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+          <tbody>${orders.map(o => `<tr>
+            <td>#${o.id.substr(-6)}</td>
+            <td>${o.customerEmail || 'Guest'}</td>
+            <td>$${o.total?.toFixed(2) || '0.00'}</td>
+            <td><span class="badge badge-${o.status === 'paid' || o.status === 'delivered' ? 'success' : o.status === 'pending' ? 'warning' : 'danger'}">${o.status}</span></td>
+            <td>${new Date(o.createdAt).toLocaleDateString()}</td>
+            <td>
+              <select onchange="updateStatus('${o.id}', this.value)" style="padding:0.25rem;font-size:0.8rem">
+                <option value="">Update...</option>
+                <option value="paid">Paid</option>
+                <option value="shipped">Shipped</option>
+                <option value="delivered">Delivered</option>
+                <option value="canceled">Canceled</option>
+              </select>
+            </td>
+          </tr>`).join('')}</tbody>
+        </table>` : '<p>No orders found.</p>'
+    }
+
+    async function updateStatus(id, status) {
+      if (!status) return
+      await OrdersAPI.update(id, { status })
+      loadOrders()
+    }
+  </script>
+</body>
+</html>

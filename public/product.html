@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product | Online Store</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1><a href="/">Online Store</a></h1>
+      <nav>
+        <a href="/cart.html">Cart <span id="cart-count" class="cart-count" style="display:none">0</span></a>
+        <a href="/admin/">Admin</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <a href="/" style="display:inline-block;margin-bottom:1rem">&larr; Back to Products</a>
+    <div id="product"></div>
+  </main>
+  <footer><div class="container">&copy; 2026 Online Store</div></footer>
+  <script src="/js/cart.js"></script>
+  <script src="/js/api.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const productEl = document.getElementById('product')
+      const params = new URLSearchParams(location.search)
+      const id = params.get('id')
+      if (!id) { productEl.innerHTML = '<p>Product not found.</p>'; return }
+      const p = await ProductsAPI.get(id)
+      productEl.innerHTML = `
+        <div class="grid grid-2" style="gap:2rem">
+          <img src="${p.images?.[0] || 'https://via.placeholder.com/600x400?text=No+Image'}" alt="${p.title}" class="product-detail">
+          <div>
+            <h2>${p.title}</h2>
+            <p class="price" style="font-size:1.5rem;margin:1rem 0">${formatPrice(p.price, p.currency)}</p>
+            <p style="color:var(--text-secondary);margin-bottom:1rem">${p.description || 'No description.'}</p>
+            <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:1.5rem">
+              ${p.inventory > 0 ? '✓ In stock (' + p.inventory + ' available)' : '✗ Out of stock'}
+            </p>
+            <button class="btn btn-primary" onclick="addToCart('${p.id}')" ${p.inventory < 1 ? 'disabled' : ''}>
+              Add to Cart
+            </button>
+          </div>
+        </div>`
+    })
+    function addToCart(id) { window.addToCart(id); location.href = '/cart.html' }
+  </script>
+</body>
+</html>
