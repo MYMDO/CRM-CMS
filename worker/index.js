@@ -5,17 +5,21 @@ import { checkoutRouter } from './routes/checkout.js'
 
 const app = new Hono()
 
-app.all('*', async (c, next) => {
+// CORS middleware - must be before routes
+app.use('*', async (c, next) => {
   const origin = c.req.header('Origin') || ''
-  if (origin) {
+  // Allow all origins that end with .pages.dev or localhost
+  const isAllowed = origin.endsWith('.pages.dev') || origin.includes('localhost') || origin.includes('127.0.0.1')
+  if (isAllowed) {
     c.header('Access-Control-Allow-Origin', origin)
     c.header('Access-Control-Allow-Credentials', 'true')
+    c.header('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS')
+    c.header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+    c.header('Access-Control-Max-Age', '86400')
   } else {
+    // For non-browser requests, allow all
     c.header('Access-Control-Allow-Origin', '*')
   }
-  c.header('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS')
-  c.header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-  c.header('Access-Control-Max-Age', '86400')
   if (c.req.method === 'OPTIONS') {
     return new Response(null, { status: 204 })
   }
