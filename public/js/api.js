@@ -1,4 +1,8 @@
-const API_BASE = location.hostname === 'localhost' || location.hostname === '127.0.0.1' ? 'http://localhost:8787' : ''
+const API_BASE = location.hostname === 'localhost' || location.hostname === '127.0.0.1' ? 'http://localhost:8787' : 'https://crm-cms-api.p4d-b2q.workers.dev'
+const CORS_PROXY = location.hostname === 'localhost' || location.hostname === '127.0.0.1' ? '' : ''
+
+// For production, use the Worker URL directly (no relative URLs)
+// This eliminates any path-based routing issues on Pages
 
 async function api(path, options = {}) {
   const headers = new Headers({ 'Content-Type': 'application/json' })
