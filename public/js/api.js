@@ -1,5 +1,4 @@
-const API_BASE = location.hostname === 'localhost' || location.hostname === '127.0.0.1' ? 'http://localhost:8787' : 'https://crm-cms-api.p4d-b2q.workers.dev'
-const ADMIN_KEY = 'crm-cms-admin-secret-key-change-me'
+const API_BASE = location.hostname === 'localhost' || location.hostname === '127.0.0.1' ? 'http://localhost:8787' : ''
 
 async function api(path, options = {}) {
   const headers = new Headers({ 'Content-Type': 'application/json' })
@@ -7,6 +6,22 @@ async function api(path, options = {}) {
     for (const [key, value] of Object.entries(options.headers)) {
       headers.set(key, value)
     }
+  }
+  const fetchOptions = { ...options, headers }
+  delete fetchOptions.headers
+  Object.assign(fetchOptions, { headers })
+  try {
+    const res = await fetch(`${API_BASE}${path}`, fetchOptions)
+    if (!res.ok) {
+      const text = await res.text()
+      throw new Error(`HTTP ${res.status}: ${text}`)
+    }
+    return res.json()
+  } catch (err) {
+    console.error('API Error:', err, 'URL:', `${API_BASE}${path}`, 'Options:', fetchOptions)
+    throw err
+  }
+}
   }
   const fetchOptions = { ...options, headers }
   delete fetchOptions.headers
