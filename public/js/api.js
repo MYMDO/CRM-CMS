@@ -22,22 +22,6 @@ async function api(path, options = {}) {
     throw err
   }
 }
-  }
-  const fetchOptions = { ...options, headers }
-  delete fetchOptions.headers
-  Object.assign(fetchOptions, { headers })
-  try {
-    const res = await fetch(`${API_BASE}${path}`, fetchOptions)
-    if (!res.ok) {
-      const text = await res.text()
-      throw new Error(`HTTP ${res.status}: ${text}`)
-    }
-    return res.json()
-  } catch (err) {
-    console.error('API Error:', err, 'URL:', `${API_BASE}${path}`, 'Options:', fetchOptions)
-    throw err
-  }
-}
 
 // Stripe removed - using direct checkout
 const stripePromise = Promise.resolve(null)
@@ -48,19 +32,19 @@ window.ProductsAPI = {
     return api(`/api/products${q ? '?' + q : ''}`)
   },
   get: (id) => api(`/api/products/${id}`),
-  create: (data) => api('/api/products', { method: 'POST', headers: { Authorization: `Bearer ${ADMIN_KEY}` }, body: JSON.stringify(data) }),
-  update: (id, data) => api(`/api/products/${id}`, { method: 'PATCH', headers: { Authorization: `Bearer ${ADMIN_KEY}` }, body: JSON.stringify(data) }),
-  delete: (id) => api(`/api/products/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${ADMIN_KEY}` } })
+  create: (data) => api('/api/products', { method: 'POST', headers: { Authorization: `Bearer ${window.ADMIN_KEY}` }, body: JSON.stringify(data) }),
+  update: (id, data) => api(`/api/products/${id}`, { method: 'PATCH', headers: { Authorization: `Bearer ${window.ADMIN_KEY}` }, body: JSON.stringify(data) }),
+  delete: (id) => api(`/api/products/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${window.ADMIN_KEY}` } })
 }
 
 window.OrdersAPI = {
   list: (params = {}) => {
     const q = new URLSearchParams(params).toString()
-    return api(`/api/orders${q ? '?' + q : ''}`, { headers: { Authorization: `Bearer ${ADMIN_KEY}` } })
+    return api(`/api/orders${q ? '?' + q : ''}`, { headers: { Authorization: `Bearer ${window.ADMIN_KEY}` } })
   },
   get: (id, token) => api(`/api/orders/${id}${token ? '?token=' + token : ''}`),
-  update: (id, data) => api(`/api/orders/${id}`, { method: 'PATCH', headers: { Authorization: `Bearer ${ADMIN_KEY}` }, body: JSON.stringify(data) }),
-  analytics: () => api('/api/analytics', { headers: { Authorization: `Bearer ${ADMIN_KEY}` } })
+  update: (id, data) => api(`/api/orders/${id}`, { method: 'PATCH', headers: { Authorization: `Bearer ${window.ADMIN_KEY}` }, body: JSON.stringify(data) }),
+  analytics: () => api('/api/analytics', { headers: { Authorization: `Bearer ${window.ADMIN_KEY}` } })
 }
 
 window.CheckoutAPI = {
@@ -70,3 +54,5 @@ window.CheckoutAPI = {
 window.formatPrice = function(price, currency = 'USD') {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(price)
 }
+
+window.ADMIN_KEY = 'crm-cms-admin-secret-key-change-me'
