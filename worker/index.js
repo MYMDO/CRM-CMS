@@ -5,25 +5,28 @@ import { checkoutRouter } from './routes/checkout.js'
 
 const app = new Hono()
 
-// CORS middleware - must be before routes
+// CORS middleware - add headers to every response
 app.use('*', async (c, next) => {
   const origin = c.req.header('Origin') || ''
-  // Allow all origins that end with .pages.dev or localhost
   const isAllowed = origin.endsWith('.pages.dev') || origin.includes('localhost') || origin.includes('127.0.0.1')
-  if (isAllowed) {
-    c.header('Access-Control-Allow-Origin', origin)
-    c.header('Access-Control-Allow-Credentials', 'true')
-    c.header('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS')
-    c.header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-    c.header('Access-Control-Max-Age', '86400')
-  } else {
-    // For non-browser requests, allow all
-    c.header('Access-Control-Allow-Origin', '*')
-  }
-  if (c.req.method === 'OPTIONS') {
-    return new Response(null, { status: 204 })
-  }
+  
   await next()
+  
+  // Set CORS headers after next() so they're on the response
+  if (isAllowed) {
+    c.res.headers.set('Access-Control-Allow-Origin', origin)
+    c.res.headers.set('Access-Control-Allow-Credentials', 'true')
+    c.res.headers.set('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS')
+    c.res.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+    c.res.headers.set('Access-Control-Max-Age', '86400')
+  } else {
+    c.res.headers.set('Access-Control-Allow-Origin', '*')
+  }
+})
+
+// Handle OPTIONS preflight
+app.options('*', (c) => {
+  return new Response(null, { status: 204 })
 })
 
 app.get('/api/health', (c) => c.json({ status: 'ok', timestamp: Date.now() }))
