@@ -5,14 +5,15 @@ import { checkoutRouter } from './routes/checkout.js'
 
 const app = new Hono()
 
-app.use('*', async (c, next) => {
+app.all('*', async (c, next) => {
   const origin = c.req.header('Origin') || ''
   const allowedOrigins = [
     'https://crm-cms-store.pages.dev',
     'http://localhost:5173',
     'http://localhost:8787'
   ]
-  if (allowedOrigins.includes(origin) || origin.endsWith('.pages.dev') || origin.includes('localhost')) {
+  const isAllowedOrigin = allowedOrigins.includes(origin) || origin.endsWith('.pages.dev') || origin.includes('localhost')
+  if (isAllowedOrigin) {
     c.header('Access-Control-Allow-Origin', origin)
     c.header('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS')
     c.header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
