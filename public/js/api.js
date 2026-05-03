@@ -12,7 +12,7 @@ async function api(path, options = {}) {
 // Stripe removed - using direct checkout
 const stripePromise = Promise.resolve(null)
 
-const ProductsAPI = {
+window.ProductsAPI = {
   list: (params = {}) => {
     const q = new URLSearchParams(params).toString()
     return api(`/api/products${q ? '?' + q : ''}`)
@@ -23,7 +23,7 @@ const ProductsAPI = {
   delete: (id) => api(`/api/products/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${ADMIN_KEY}` } })
 }
 
-const OrdersAPI = {
+window.OrdersAPI = {
   list: (params = {}) => {
     const q = new URLSearchParams(params).toString()
     return api(`/api/orders${q ? '?' + q : ''}`, { headers: { Authorization: `Bearer ${ADMIN_KEY}` } })
@@ -33,17 +33,10 @@ const OrdersAPI = {
   analytics: () => api('/api/analytics', { headers: { Authorization: `Bearer ${ADMIN_KEY}` } })
 }
 
-const CheckoutAPI = {
+window.CheckoutAPI = {
   create: (data) => api('/api/checkout', { method: 'POST', body: JSON.stringify(data) })
 }
 
-const stripePromise = new Promise((resolve) => {
-  const el = document.createElement('script')
-  el.src = 'https://js.stripe.com/v3/'
-  el.onload = () => resolve(Stripe(window.STRIPE_PUBLISHABLE_KEY || ''))
-  document.head.appendChild(el)
-})
-
-function formatPrice(price, currency = 'USD') {
+window.formatPrice = function(price, currency = 'USD') {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(price)
 }
