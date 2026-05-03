@@ -1,4 +1,4 @@
-const API_BASE = location.hostname === 'localhost' || location.hostname === '127.0.0.1' ? 'http://localhost:8787' : ''
+const API_BASE = location.hostname === 'localhost' || location.hostname === '127.0.0.1' ? 'http://localhost:8787' : 'https://crm-cms-api.p4d-b2q.workers.dev'
 const ADMIN_KEY = 'crm-cms-admin-secret-key-change-me'
 
 async function api(path, options = {}) {
